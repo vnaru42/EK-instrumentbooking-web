@@ -22,3 +22,26 @@ textarea{display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #
 
 /* Dansk uge-navigation og mobilvenlig kalender */
 .week-navigation{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:480px;margin:16px auto 10px}.week-arrow{background:#fff;color:#245b50;border:1px solid #cbd5cf;border-radius:9px;font-size:1.8rem;line-height:1;width:48px;height:46px;padding:0}.week-current{text-align:center;display:flex;flex-direction:column;gap:3px}.week-current strong{font-size:1.2rem}.week-current span{font-size:.88rem;color:#61716a}.week-today{display:block;margin:0 auto 18px;background:#e3eee9;color:#20473e;width:min(100%,480px)}.timeline{min-width:610px}.panel:has(.timeline){overflow-x:auto}.timeline-head{grid-template-columns:120px repeat(7,minmax(70px,1fr))}.timeline-row{grid-template-columns:120px minmax(490px,1fr)}.timeline-head span{line-height:1.5}.date-fields input[type=date]{text-align:center;text-align-last:center;min-width:0}.date-fields input[type=date]::-webkit-date-and-time-value{text-align:center}.date-fields input[type=date]::-webkit-datetime-edit{display:flex;justify-content:center}.responsible-table{width:100%;margin:12px 0 20px}.responsible-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px 4px;border-bottom:1px solid #edf2ef;font-size:.9rem}.responsible-heading{color:#61716a;font-weight:650;font-size:.8rem}@media(max-width:680px){.timeline{min-width:610px}.timeline-head{grid-template-columns:88px repeat(7,minmax(74px,1fr))}.timeline-row{grid-template-columns:88px minmax(518px,1fr)}.week-navigation{gap:8px}.week-arrow{width:44px;flex-shrink:0}}
+
+/* Kalender: hele ugen skal passe på telefonen uden vandret sidescroll. */
+.panel:has(.timeline){min-width:0;max-width:100%;overflow:hidden}
+.timeline{width:100%;min-width:0;max-width:100%;overflow:visible}
+.timeline-head{grid-template-columns:minmax(72px,1.5fr) repeat(7,minmax(0,1fr));min-width:0}
+.timeline-row{grid-template-columns:minmax(72px,1.5fr) minmax(0,7fr);min-width:0}
+.timeline-head span{min-width:0;overflow:hidden;padding:8px 1px;line-height:1.25}
+.timeline-label{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.timeline-track{min-width:0}
+.week-navigation{width:100%;max-width:420px;min-width:0}
+@media(max-width:680px){
+  .panel:has(.timeline){padding:12px}
+  .timeline{width:100%;min-width:0}
+  .timeline-head{grid-template-columns:minmax(64px,1.6fr) repeat(7,minmax(0,1fr))}
+  .timeline-row{grid-template-columns:minmax(64px,1.6fr) minmax(0,7fr)}
+  .timeline-head span{font-size:.61rem;overflow-wrap:anywhere}
+  .timeline-label{font-size:.66rem;padding:12px 3px}
+  .timeline-bar{font-size:.62rem;padding:5px 2px}
+  .week-navigation{margin:12px auto;gap:5px}
+  .week-arrow{width:40px;height:40px}
+  .week-current strong{font-size:1.1rem}
+  .week-current span{font-size:.8rem}
+}
