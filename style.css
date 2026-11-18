@@ -103,3 +103,62 @@ main{width:100%;min-width:0;max-width:1050px}
  .main-nav{position:fixed;top:100px;left:0;width:210px;display:flex;flex-direction:column;padding:18px 12px;gap:5px;margin:0;height:auto;z-index:10}
  .main-nav button{text-align:left}
 }
+
+
+/* Mobile polish: centre native iOS date values without changing the date picker. */
+.date-fields input[type="date"]{
+  display:block;
+  width:100%;
+  min-width:0;
+  height:46px;
+  padding:0 8px;
+  line-height:46px;
+  text-align:center;
+  text-align-last:center;
+  -webkit-appearance:none;
+  appearance:none;
+}
+.date-fields input[type="date"]::-webkit-date-and-time-value{
+  display:block;
+  width:100%;
+  min-height:1lh;
+  line-height:normal;
+  text-align:center;
+}
+.date-fields input[type="date"]::-webkit-datetime-edit{
+  display:flex;
+  width:100%;
+  min-height:46px;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  text-align:center;
+}
+.date-fields input[type="date"]::-webkit-datetime-edit-fields-wrapper{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+}
+
+/* Equipment rows: descriptions wrap, action buttons stay side by side. */
+.settings-row{min-width:0}
+.settings-row>span{flex:1 1 0;min-width:0;overflow-wrap:anywhere;line-height:1.45}
+.settings-actions{
+  display:flex;
+  flex:0 0 auto;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:flex-end;
+  gap:6px;
+}
+.settings-actions button{
+  flex:0 0 auto;
+  white-space:nowrap;
+  margin:0;
+}
+@media(max-width:680px){
+  .settings-row{gap:8px;padding:12px 2px;font-size:.85rem}
+  .settings-actions{gap:5px}
+  .settings-actions button{padding:10px 9px;font-size:.82rem}
+}
