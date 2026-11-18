@@ -13,3 +13,5 @@ textarea{display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #
 .status{background:#e3eee9;color:#20473e;padding:2px 9px;border-radius:20px;font-size:.8rem}
 .week-picker{max-width:240px}
 @media(max-width:680px){.main-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.main-nav button{padding:14px 6px}}
+
+.main-nav{grid-template-columns:repeat(5,minmax(0,1fr))}.subtabs{display:flex;gap:8px;margin-bottom:12px}.subtabs button{background:#e3eee9;color:#20473e}.subtabs button.active{background:#245b50;color:white}.record{border:1px solid #e2eae5;border-radius:9px;margin:8px 0;overflow:hidden}.record-title{background:#f3f8f5;color:#25312f;width:100%;display:flex;justify-content:space-between;gap:8px;align-items:center;text-align:left}.record-title small{font-size:.75rem;color:#61716a}.record-details{padding:12px;line-height:1.8}.equipment-choice.unavailable{background:#f8dedb;color:#922f2f}.stats{max-width:100%}@media(max-width:680px){.main-nav{grid-template-columns:repeat(3,minmax(0,1fr))}.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.stats div{min-width:0}.stats small{font-size:.7rem}}
