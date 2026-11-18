@@ -8,10 +8,15 @@ let equipment=[
 ...Array.from({length:8},(_,i)=>({id:`BAT-${String(i+1).padStart(2,'0')}`,kind:'Batteri'}))
 ];
 
-let bookings=[],selected=[],tab='out',subtab='out',expanded=null,filter='',week=iso(new Date()),settingsSection='equipment';
+let bookings=[],selected=[],tab='out',subtab='out',expanded=null,filter='',week=mondayOf(new Date()),settingsSection='equipment';
 const $=id=>document.getElementById(id);
 const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function mondayOf(value){const d=new Date(value instanceof Date?value.getTime():value+'T12:00:00');d.setHours(12,0,0,0);d.setDate(d.getDate()-(d.getDay()+6)%7);return iso(d)}
+function shiftWeek(delta){const d=new Date(week+'T12:00:00');d.setDate(d.getDate()+delta*7);week=iso(d);render()}
+function weekNumber(value){const d=new Date(value+'T12:00:00');const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));t.setUTCDate(t.getUTCDate()+4-(t.getUTCDay()||7));return Math.ceil((((t-new Date(Date.UTC(t.getUTCFullYear(),0,1)))/86400000)+1)/7)}
+function dkDate(value){if(!value)return '';const [y,m,d]=value.split('-');return d+'/'+m+'/'+y}
+function shortDate(value){return dkDate(value).slice(0,5)}
 const nav=[['out','Udlån'],['reserved','Reservation'],['active','Aktive'],['overview','Kalender'],['equipment','Udstyr'],['history','Historik'],['settings','Indstillinger']];
 function render(){
 const form=tab==='out'||tab==='reserved';
@@ -26,10 +31,10 @@ ${tab==='history'?`<section class="panel"><h2>Historik</h2><label>Søg<input id=
 <button type="submit">Registrer ${tab==='out'?'udlån':'reservation'}</button><p id="error" role="alert"></p></form></section>`:''}
 ${form?`<section class="stats"><div><b>${equipment.length}</b><small>Udstyrsdele (demo)</small></div><div><b>${bookings.filter(b=>b.status==='out').length}</b><small>Aktive udlån</small></div><div><b>${bookings.filter(b=>b.status==='reserved').length}</b><small>Reservationer</small></div></section>`:''}
 ${['out','reserved','active','overview','equipment'].includes(tab)?`<section class="panel"><h2>${tab==='out'?'Aktive udlån · hurtig aflevering':tab==='reserved'?'Reservationer':tab==='equipment'?'Udstyrskalender':'Oversigtskalender'}</h2>
-${tab==='overview'||tab==='equipment'?`<label class="week-picker">Vis uge fra<input type="date" id="week" value="${week}"></label>`:''}<div id="calendar"></div></section>`:''}</main>`;
+${tab==='overview'||tab==='equipment'?`<div class="week-navigation"><button type="button" class="week-arrow" data-week-shift="-1" aria-label="Forrige uge">‹</button><div class="week-current"><strong>Uge ${weekNumber(week)}</strong><span>${shortDate(week)} – ${shortDate((()=>{const d=new Date(week+'T12:00:00');d.setDate(d.getDate()+6);return iso(d)})())} ${week.slice(0,4)}</span></div><button type="button" class="week-arrow" data-week-shift="1" aria-label="Næste uge">›</button></div><button type="button" class="week-today" id="week-today">Denne uge</button>`:''}<div id="calendar"></div></section>`:''}</main>`;
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;selected=[];render()});
 if(form){$('search').oninput=renderMatches;$('loanform').onsubmit=submit;renderMatches()}
-if($('week'))$('week').onchange=e=>{week=e.target.value;draw()};if(tab==='active'){document.querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>{subtab=b.dataset.sub;expanded=null;drawRecords()});$('filter').oninput=e=>{filter=e.target.value;drawRecords()};drawRecords()}if($('calendar'))draw();if(tab==='history'){$('history-filter').oninput=drawHistory;drawHistory()}if(tab==='settings'){document.querySelectorAll('[data-settings]').forEach(x=>x.onclick=()=>{settingsSection=x.dataset.settings;drawSettings()});drawSettings()}
+document.querySelectorAll('[data-week-shift]').forEach(b=>b.onclick=()=>shiftWeek(Number(b.dataset.weekShift)));if($('week-today'))$('week-today').onclick=()=>{week=mondayOf(new Date());render()};if(tab==='active'){document.querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>{subtab=b.dataset.sub;expanded=null;drawRecords()});$('filter').oninput=e=>{filter=e.target.value;drawRecords()};drawRecords()}if($('calendar'))draw();if(tab==='history'){$('history-filter').oninput=drawHistory;drawHistory()}if(tab==='settings'){document.querySelectorAll('[data-settings]').forEach(x=>x.onclick=()=>{settingsSection=x.dataset.settings;drawSettings()});drawSettings()}
 }
 function renderMatches(){
 const q=$('search').value.trim().toLowerCase();
@@ -50,7 +55,7 @@ selected=[];tab='active';subtab=data.status;expanded=bookings.at(-1).id;filter='
 function draw(){
 const days=Array.from({length:7},(_,i)=>{const d=new Date(week+'T12:00:00');d.setDate(d.getDate()+i);return iso(d)});
 const rows=tab==='equipment'?equipment.map(e=>({label:e.id,items:bookings.filter(b=>b.items.includes(e.id)&&b.status!=='returned')})):bookings.filter(b=>b.status!=='returned').map(b=>({label:b.id+' · '+b.borrower,items:[b]}));
-let html='<div class="timeline"><div class="timeline-head"><span>'+ (tab==='equipment'?'Udstyr':'Booking')+'</span>'+days.map(d=>'<span>'+d.slice(5)+'</span>').join('')+'</div>';
+let html='<div class="timeline"><div class="timeline-head"><span>'+ (tab==='equipment'?'Udstyr':'Booking')+'</span>'+days.map((d,i)=>'<span>'+['Man','Tir','Ons','Tor','Fre','Lør','Søn'][i]+'<br>'+shortDate(d)+'</span>').join('')+'</div>';
 for(const row of rows){
 html+='<div class="timeline-row"><div class="timeline-label">'+safe(row.label)+'</div><div class="timeline-track">';
 for(const b of row.items){
@@ -78,7 +83,7 @@ function drawSettings(){
 const body=$('settings-body');
 document.querySelectorAll('[data-settings]').forEach(x=>x.classList.toggle('active',x.dataset.settings===settingsSection));
 if(settingsSection==='users'){
-body.innerHTML='<h3>Instrumentansvarlige</h3><p>Systemadministrator: kun dig. Instrumentleder: administrator. Øvrige: instrumentansvarlige.</p><p class="hint">Invitation via mail, personligt EK-ID og adgangskode bygges med backend. Der er endnu ingen virkelige konti.</p>';
+body.innerHTML='<h3>Instrumentansvarlige</h3><div class="responsible-table"><div class="responsible-row responsible-heading"><span>Navn</span><span>Rolle</span></div><div class="responsible-row"><span>Systemejer</span><span>Systemadministrator</span></div><div class="responsible-row"><span>Instrumentleder</span><span>Administrator</span></div><div class="responsible-row"><span>Øvrige ansvarlige</span><span>Instrumentansvarlig</span></div></div><p class="hint">Eksempel på roller – ingen virkelige konti endnu. Invitation og brugeradministration kræver backend.</p>';
 return;
 }
 body.innerHTML='<form id="add-equipment"><h3>Tilføj udstyr</h3><div class="fields"><label>Udstyrs-ID<input name="id" required maxlength="30" placeholder="TS-11"></label><label>Type<input name="kind" required maxlength="80" placeholder="Totalstation"></label></div><button type="submit">Tilføj</button><p id="settings-error" role="alert"></p></form><h3>Udstyrsliste</h3><div class="settings-list">'+equipment.map(e=>'<div class="settings-row"><span><b>'+safe(e.id)+'</b> · '+safe(e.kind)+(e.archived?' (arkiveret)':'')+'</span><button class="secondary" data-archive="'+safe(e.id)+'">'+(e.archived?'Genaktiver':'Arkivér')+'</button></div>').join('')+'</div>';
