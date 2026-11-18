@@ -45,3 +45,24 @@ textarea{display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #
   .week-current strong{font-size:1.1rem}
   .week-current span{font-size:.8rem}
 }
+
+/* Mobile calendar v3: explicit pixel-safe columns, never horizontal scrolling */
+html,body,#app{width:100%;max-width:100%;overflow-x:clip}
+main{width:100%;min-width:0;max-width:1050px}
+.panel{min-width:0;max-width:100%}
+.panel:has(#calendar){overflow:hidden}
+#calendar{width:100%;min-width:0;overflow:hidden}
+#calendar .timeline{display:block;width:100%;min-width:0!important;max-width:100%;overflow:hidden!important}
+#calendar .timeline-head{display:grid;grid-template-columns:24% repeat(7,minmax(0,1fr))!important;width:100%;min-width:0!important}
+#calendar .timeline-row{display:grid;grid-template-columns:24% minmax(0,76%)!important;width:100%;min-width:0!important}
+#calendar .timeline-head span{min-width:0;max-width:100%;white-space:normal;word-break:normal;overflow:hidden}
+#calendar .timeline-label{min-width:0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#calendar .timeline-track{min-width:0;max-width:100%;overflow:hidden}
+#calendar .timeline-bar{max-width:100%;min-width:0}
+@media(max-width:680px){
+ main{padding:12px}
+ .panel:has(#calendar){padding:12px 8px}
+ #calendar .timeline-head span{font-size:10px;padding:7px 0;letter-spacing:-.3px}
+ #calendar .timeline-label{font-size:11px;padding:12px 2px}
+ #calendar .timeline-bar{font-size:10px}
+}
