@@ -66,3 +66,33 @@ main{width:100%;min-width:0;max-width:1050px}
  #calendar .timeline-label{font-size:11px;padding:12px 2px}
  #calendar .timeline-bar{font-size:10px}
 }
+
+@media(min-width:850px){
+ #app{display:grid;grid-template-columns:210px minmax(0,1fr);grid-template-rows:auto 1fr;min-height:100vh}
+ #app>header{grid-column:1/-1}
+ #app>main{grid-column:2;grid-row:2;width:100%;max-width:none;margin:0;padding:24px}
+ .main-nav{position:sticky;top:12px;align-self:start;grid-column:1;grid-row:2;display:flex;flex-direction:column;padding:18px 12px;gap:5px;margin:0;height:max-content}
+ .main-nav button{text-align:left;padding:13px 16px}
+ .mobile-nav,.more-menu{display:none!important}
+}
+@media(max-width:849px){
+ main{padding-bottom:105px!important}
+ .main-nav{display:none!important}
+ .mobile-nav{position:fixed;bottom:0;left:0;right:0;z-index:30;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;padding:6px 3px max(8px,env(safe-area-inset-bottom));background:white;border-top:1px solid #dfe8e2;box-shadow:0 -2px 12px #0001}
+ .mobile-nav button{background:transparent;color:#4a645b;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 1px;border-radius:8px;font:inherit}
+ .mobile-nav button span{font-size:22px;line-height:1.2}
+ .mobile-nav button small{font-size:10px}
+ .mobile-nav button.active{background:#e3eee9;color:#20473e;font-weight:700}
+ .more-menu:not([hidden]){position:fixed;bottom:calc(68px + env(safe-area-inset-bottom));right:8px;z-index:31;display:grid;gap:6px;background:white;border:1px solid #dfe8e2;box-shadow:0 5px 20px #0002;border-radius:12px;padding:10px;min-width:190px}
+ .more-menu button{background:#e3eee9;color:#20473e;text-align:left}
+}
+.return-dialog{border:0;border-radius:14px;width:min(94vw,480px);max-height:85vh;padding:22px;box-shadow:0 16px 55px #0004;color:#25312f}
+.return-dialog::backdrop{background:#102d2888}
+.return-items{display:grid;gap:8px;max-height:48vh;overflow-y:auto}
+.return-item{display:flex;align-items:center;gap:12px;padding:11px;border:1px solid #dce7e0;border-radius:8px;margin:0}
+.return-item input{width:21px;height:21px;margin:0;flex-shrink:0}
+.dialog-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:16px}
+#return-error,.edit-error{color:#ad3333}
+.settings-actions{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end}
+.settings-actions button{margin:2px}
+.edit-equipment{width:100%}
