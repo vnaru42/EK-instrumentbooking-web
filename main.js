@@ -20,7 +20,7 @@ $('app').innerHTML=`<header><h1>EK Instrumentbooking</h1><span class="pill">DEMO
 <nav class="main-nav" aria-label="Hovedmenu">${nav.map(([id,label])=>`<button data-tab="${id}" class="${tab===id?'active':''}" aria-current="${tab===id?'page':'false'}">${label}</button>`).join('')}</nav>
 ${tab==='active'?`<section class="panel"><h2>Aktive udlån og reservationer</h2><div class="subtabs"><button data-sub="out">Udlån</button><button data-sub="reserved">Reservationer</button></div><label>Søg<input id="filter" placeholder="Navn, EK-ID, klasse, udstyr eller booking-ID"></label><div id="records"></div></section>`:''}${form?`<section class="panel"><h2>${tab==='out'?'Nyt udlån':'Ny reservation'}</h2>
 <form id="loanform"><input type="hidden" name="status" value="${tab}">
-<div class="fields"><label>Navn<input name="borrower" required placeholder="Testperson"></label><label>Klasse<input name="klass" required placeholder="KLT-26"></label><label>EK-ID<input name="ekid" required pattern="[A-Za-z0-9]{3,20}" placeholder="test123" autocapitalize="none"></label><label>Tilføj udstyr<input id="search" autocomplete="off" placeholder="Søg fx TS-01, stativ, prisme"></label><div id="matches" class="matches"></div><div id="chosen"></div><label>Fra<input name="start" type="date" value="${iso(new Date())}" required></label><label>Til<input name="end" type="date" value="${iso(new Date())}" required></label></div>
+<div class="fields"><label>Navn<input name="borrower" required placeholder="Testperson"></label><label>Klasse<input name="klass" required placeholder="KLT-26"></label><label>EK-ID<input name="ekid" required pattern="[A-Za-z0-9]{3,20}" placeholder="test123" autocapitalize="none"></label></div><label>Tilføj udstyr<input id="search" autocomplete="off" placeholder="Søg fx TS-01, stativ, prisme"></label><div id="matches" class="matches"></div><div id="chosen"></div><div class="fields date-fields"><label>Fra<input name="start" type="date" value="${iso(new Date())}" required></label><label>Til<input name="end" type="date" value="${iso(new Date())}" required></label></div>
 <label>Noter (valgfrit)<textarea name="note" rows="2" maxlength="500" placeholder="Bemærkninger"></textarea></label>
 
 <button type="submit">Registrer ${tab==='out'?'udlån':'reservation'}</button><p id="error" role="alert"></p></form></section>`:''}
@@ -48,22 +48,23 @@ bookings.push({...data,items,id:'B-'+String(bookings.length+1).padStart(3,'0')})
 selected=[];tab='active';subtab=data.status;expanded=bookings.at(-1).id;filter='';render();
 }
 function draw(){
-const filtered=tab==='out'?bookings.filter(b=>b.status==='out'):tab==='reserved'?bookings.filter(b=>b.status==='reserved'):bookings;
-let html='';
-if(tab==='overview'||tab==='equipment'){
 const days=Array.from({length:7},(_,i)=>{const d=new Date(week+'T12:00:00');d.setDate(d.getDate()+i);return iso(d)});
-const rows=tab==='equipment'?equipment.map(e=>({label:e.id,items:bookings.filter(b=>b.items.includes(e.id))})):bookings.map(b=>({label:b.id,items:[b]}));
-html+=`<div class="calendar"><div class="cell head">${tab==='equipment'?'Udstyr':'Booking'}</div>${days.map(d=>`<div class="cell head">${d.slice(5)}</div>`).join('')}`;
-for(const row of rows){html+=`<div class="cell label">${safe(row.label)}</div>`;for(const day of days){const b=row.items.find(x=>x.status!=='returned'&&x.start<=day&&x.end>=day);html+=`<div class="cell">${b?`<span class="event" style="background:${bookingColor(b.id)}">${safe(b.id)}</span>`:''}</div>`}}
+const rows=tab==='equipment'?equipment.map(e=>({label:e.id,items:bookings.filter(b=>b.items.includes(e.id)&&b.status!=='returned')})):bookings.filter(b=>b.status!=='returned').map(b=>({label:b.id+' · '+b.borrower,items:[b]}));
+let html='<div class="timeline"><div class="timeline-head"><span>'+ (tab==='equipment'?'Udstyr':'Booking')+'</span>'+days.map(d=>'<span>'+d.slice(5)+'</span>').join('')+'</div>';
+for(const row of rows){
+html+='<div class="timeline-row"><div class="timeline-label">'+safe(row.label)+'</div><div class="timeline-track">';
+for(const b of row.items){
+if(b.start>days[6]||b.end<days[0])continue;
+const first=b.start<=days[0]?0:days.indexOf(b.start),last=b.end>=days[6]?6:days.indexOf(b.end);
+if(first<0||last<0)continue;
+html+='<button type="button" class="timeline-bar" style="left:'+(first*100/7)+'%;width:'+((last-first+1)*100/7)+'%;background:'+bookingColor(b.id)+'" data-booking="'+b.id+'">'+safe(b.id)+'</button>';
+}
+html+='</div></div>';
+}
 html+='</div>';
-}
-if(tab!=='equipment'){
-if(!filtered.length)html+='<p class="hint">Ingen registreringer endnu i denne visning.</p>';
-html+=filtered.map(b=>`<article class="loan"><div class="loan-top"><strong>${safe(b.id)}</strong><span class="status">${b.status==='out'?'Udlånt':b.status==='reserved'?'Reserveret':'Afleveret'}</span></div><div>${safe(b.borrower)} · ${safe(b.klass)} · ${safe(b.ekid)}</div><div>${safe(b.start)} – ${safe(b.end)}</div><div>Udstyr: ${safe(b.items.join(', '))}</div>${b.note?`<div>Note: ${safe(b.note)}</div>`:''}${b.status==='out'?`<button class="secondary" data-return="${b.id}">Aflever</button>`:''}${b.status==='reserved'?`<button class="secondary" data-checkout="${b.id}">Udlever</button>`:''}</article>`).join('');
-}
+if(!rows.length)html+='<p class="hint">Ingen bookinger endnu.</p>';
 $('calendar').innerHTML=html;
-document.querySelectorAll('[data-return]').forEach(btn=>btn.onclick=()=>{bookings.find(b=>b.id===btn.dataset.return).status='returned';render()});
-document.querySelectorAll('[data-checkout]').forEach(btn=>btn.onclick=()=>{const b=bookings.find(x=>x.id===btn.dataset.checkout);if(conflicts(b.items,bookings,b.start,b.end,b.id).length){alert('Udstyret er optaget');return}b.status='out';render()});
+document.querySelectorAll('[data-booking]').forEach(x=>x.onclick=()=>{const b=bookings.find(v=>v.id===x.dataset.booking);tab='active';subtab=b.status;expanded=b.id;render()});
 }
 function drawRecords(){const q=($('filter')?.value||'').toLowerCase();document.querySelectorAll('[data-sub]').forEach(b=>b.classList.toggle('active',b.dataset.sub===subtab));const rows=bookings.filter(b=>b.status===subtab&&[b.id,b.borrower,b.klass,b.ekid,b.note,...b.items].join(' ').toLowerCase().includes(q));$('records').innerHTML=rows.map(b=>`<article class="record"><button type="button" class="record-title" data-open="${b.id}"><strong>${safe(b.id)} · ${safe(b.borrower)}</strong><small>${safe(b.start)} – ${safe(b.end)} ${expanded===b.id?'⌃':'⌄'}</small></button>${expanded===b.id?`<div class="record-details"><div>${safe(b.klass)} · ${safe(b.ekid)}</div><div>Udstyr: ${safe(b.items.join(', '))}</div>${b.note?`<div>Note: ${safe(b.note)}</div>`:''}${b.status==='out'?`<button class="secondary" data-return="${b.id}">Aflever</button>`:''}${b.status==='reserved'?`<button class="secondary" data-checkout="${b.id}">Udlever</button>`:''}</div>`:''}</article>`).join('')||'<p class="hint">Ingen registreringer.</p>';document.querySelectorAll('[data-open]').forEach(x=>x.onclick=()=>{expanded=expanded===x.dataset.open?null:x.dataset.open;drawRecords()});document.querySelectorAll('[data-return]').forEach(x=>x.onclick=()=>{bookings.find(b=>b.id===x.dataset.return).status='returned';expanded=null;render()});document.querySelectorAll('[data-checkout]').forEach(x=>x.onclick=()=>{const b=bookings.find(v=>v.id===x.dataset.checkout);if(conflicts(b.items,bookings,b.start,b.end,b.id).length){alert('Udstyret er optaget');return}b.status='out';subtab='out';render()})}
 render();
