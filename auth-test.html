@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>EK Instrumentbooking – isoleret login-test</title>
+<style>
+body{font:16px system-ui,-apple-system,sans-serif;background:#f4f7f5;color:#263631;margin:0;padding:28px}
+main{max-width:560px;margin:7vh auto;background:white;border-radius:18px;padding:30px;box-shadow:0 8px 30px #15392c15}
+h1{font-size:1.5rem}button{background:#245e51;color:white;border:0;border-radius:9px;padding:13px 18px;font:inherit;cursor:pointer}
+button:disabled{opacity:.5}#status{white-space:pre-wrap;overflow-wrap:anywhere;background:#f2f5f3;border-radius:8px;padding:14px;margin-top:18px}
+small{color:#52675e}a{color:#245e51}
+</style>
+</head>
+<body><main>
+<h1>Microsoft-login · test</h1>
+<p>Dette er en isoleret test af, om din EK-konto kan godkendes af Microsoft. <strong>Det giver ikke adgang til bookingsystemet.</strong></p>
+<p><small>Der anmodes kun om grundlæggende identitetsoplysninger (openid, profile). Ingen mail-, fil- eller Graph-tilladelser. Vi gemmer ikke dine oplysninger i en database.</small></p>
+<button id="login" disabled>Log ind med EK-konto</button>
+<button id="logout" hidden>Afslut test</button>
+<div id="status" role="status" aria-live="polite">Indlæser loginmodul…</div>
+<p><small><a href="./">Tilbage til demoen</a></small></p>
+</main>
+<script type="module">
+import { PublicClientApplication, InteractionRequiredAuthError } from "https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.28.1/+esm";
+const clientId="de34a41c-e49c-4dbe-9996-c9d33147a73b";
+const ekTenant="9aafd452-b819-40a3-a400-f94ff33b0125";
+const redirectUri="https://vnaru42.github.io/EK-instrumentbooking-web/auth-test.html";
+const status=document.getElementById("status"), login=document.getElementById("login"), logout=document.getElementById("logout");
+const msal=new PublicClientApplication({auth:{clientId,authority:"https://login.microsoftonline.com/"+ekTenant,redirectUri,postLogoutRedirectUri:redirectUri,navigateToLoginRequestUrl:false},cache:{cacheLocation:"sessionStorage",storeAuthStateInCookie:false}});
+function showAccount(result){
+  const claims=result?.idTokenClaims;
+  if(!claims){status.textContent="Ingen aktiv login-test.";logout.hidden=true;return}
+  const correctTenant=claims.tid===ekTenant;
+  status.textContent=correctTenant
+    ?"Microsoft-login lykkedes med EK-tenant. Dette er KUN en identitetstest; ingen adgang til bookingsystemet er givet."
+    :"Login returnerede en anden tenant end EK. Testen er ikke godkendt.";
+  logout.hidden=false;
+}
+function showError(e){
+  const code=e?.errorCode||"unknown_error";
+  status.textContent="Login blev ikke gennemført. Fejlkode: "+code+
+  "\n"+(code.includes("consent")||code.includes("approval")||String(e?.message||"").includes("AADSTS65001")?"Der kan være krav om administratorgodkendelse. Stop her; send ikke en anmodning til EK.":"Se eventuelt Microsofts fejlskærm for detaljer. Del ikke tokens eller adgangskoder.");
+}
+try{
+ await msal.initialize();
+ const result=await msal.handleRedirectPromise();
+ if(result)showAccount(result);
+ else showAccount(msal.getAllAccounts().length?{idTokenClaims:msal.getAllAccounts()[0].idTokenClaims}:null);
+ login.disabled=false;
+ login.onclick=async()=>{status.textContent="Sender dig til Microsoft…";try{await msal.loginRedirect({scopes:["openid","profile"],prompt:"select_account"});}catch(e){showError(e)}};
+ logout.onclick=async()=>{try{await msal.logoutRedirect({account:msal.getActiveAccount()||msal.getAllAccounts()[0]});}catch(e){showError(e)}};
+}catch(e){showError(e)}
+</script></body></html>
