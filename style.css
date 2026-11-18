@@ -96,3 +96,10 @@ main{width:100%;min-width:0;max-width:1050px}
 .settings-actions{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end}
 .settings-actions button{margin:2px}
 .edit-equipment{width:100%}
+
+@media(min-width:850px){
+ #app{display:block}
+ #app>main{max-width:none;margin:0 0 0 210px;width:calc(100% - 210px);padding:24px}
+ .main-nav{position:fixed;top:100px;left:0;width:210px;display:flex;flex-direction:column;padding:18px 12px;gap:5px;margin:0;height:auto;z-index:10}
+ .main-nav button{text-align:left}
+}
