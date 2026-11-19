@@ -23,18 +23,15 @@ small{color:#52675e}a{color:#245e51}
 </main>
 <script type="module">
 import { PublicClientApplication, InteractionRequiredAuthError } from "https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.28.1/+esm";
-const clientId="de34a41c-e49c-4dbe-9996-c9d33147a73b";
-const ekTenant="9aafd452-b819-40a3-a400-f94ff33b0125";
+const clientId="616f459f-86d5-41ea-a4d6-e4a0e2ebbb98";
+const authority="https://login.microsoftonline.com/organizations";
 const redirectUri="https://vnaru42.github.io/udlaanssystem/auth-test.html";
 const status=document.getElementById("status"), login=document.getElementById("login"), logout=document.getElementById("logout");
-const msal=new PublicClientApplication({auth:{clientId,authority:"https://login.microsoftonline.com/"+ekTenant,redirectUri,postLogoutRedirectUri:redirectUri,navigateToLoginRequestUrl:false},cache:{cacheLocation:"sessionStorage",storeAuthStateInCookie:false}});
+const msal=new PublicClientApplication({auth:{clientId,authority,redirectUri,postLogoutRedirectUri:redirectUri,navigateToLoginRequestUrl:false},cache:{cacheLocation:"sessionStorage",storeAuthStateInCookie:false}});
 function showAccount(result){
   const claims=result?.idTokenClaims;
   if(!claims){status.textContent="Ingen aktiv login-test.";logout.hidden=true;return}
-  const correctTenant=claims.tid===ekTenant;
-  status.textContent=correctTenant
-    ?"Microsoft-login lykkedes med organisationens tenant. Dette er KUN en identitetstest; ingen adgang til bookingsystemet er givet."
-    :"Login returnerede en anden tenant end den forventede organisation. Testen er ikke godkendt.";
+  status.textContent="Microsoft-login lykkedes. Identitet er bekræftet, men adgang til Udlånssystem er IKKE givet. Organisation og adgangsrettigheder skal godkendes særskilt.";
   logout.hidden=false;
 }
 function showError(e){
